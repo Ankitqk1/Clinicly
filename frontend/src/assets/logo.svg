@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="217" height="46" viewBox="0 0 217 46" fill="none">
+  <!-- Clinicly logo with original blue sign -->
+  <!-- Left icon: blue medical cross in a circle -->
+  <g transform="translate(4,3) scale(0.065)">
+    <circle cx="256" cy="256" r="230" fill="Red"/>
+    <rect x="216" y="136" width="80" height="240" fill="white"/>
+    <rect x="136" y="216" width="240" height="80" fill="white"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="42" y="29.5" fill="#000B6D" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Arial, sans-serif"
+        font-weight="700" font-size="31">Clinicly</text>
+</svg>

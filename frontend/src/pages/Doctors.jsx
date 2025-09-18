@@ -6,8 +6,9 @@ import { useNavigate } from "react-router-dom";
 
 const Doctors = () => {
   const { speciality } = useParams();
-  const { doctors } = useContext(AppContext);
-  const [fileteredDoctors, setFilteredDoctors] = useState([]);
+  const { doctors, loading, error, fetchDoctorsBySpeciality } = useContext(AppContext);
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
+  const [isFiltering, setIsFiltering] = useState(false);
   const navigate = useNavigate();
 
   const applyFilter = () => {
@@ -114,23 +115,43 @@ const Doctors = () => {
           </p>
         </div>
         <div className="w-full grid grid-cols-auto gap-4 gap-y-6">
-          {fileteredDoctors.map((item, index) => (
-            <div
-              onClick={() => navigate(`/appointments/${item._id}`)}
-              key={index}
-              className="border border-blue-200 rounded-x1 overflow-hidden   transition-all duration-500 cursor-pointer hover:translate-y-[-10px]"
-            >
-              <img className="bg-blue-50" src={item.image} alt="" />
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-sm text-green-600 text-center">
-                  <p className="w-2 h-2 bg-green-500 rounded-full"></p>
-                  <p>Available</p>
-                </div>
-                <p className="text-gray-900 text-lg font-medium">{item.name}</p>
-                <p className="text-gray-600 text-sm"> {item.speciality}</p>
-              </div>
+          {loading ? (
+            <div className="col-span-full flex justify-center items-center py-10">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
             </div>
-          ))}
+          ) : error ? (
+            <div className="col-span-full text-center py-10">
+              <p className="text-red-500 mb-4">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Retry
+              </button>
+            </div>
+          ) : filteredDoctors.length === 0 ? (
+            <div className="col-span-full text-center py-10">
+              <p className="text-gray-500">No doctors found for this speciality.</p>
+            </div>
+          ) : (
+            filteredDoctors.map((item, index) => (
+              <div
+                onClick={() => navigate(`/appointments/${item._id}`)}
+                key={index}
+                className="border border-blue-200 rounded-x1 overflow-hidden transition-all duration-500 cursor-pointer hover:translate-y-[-10px]"
+              >
+                <img className="bg-blue-50" src={item.image} alt="" />
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-green-600 text-center">
+                    <p className="w-2 h-2 bg-green-500 rounded-full"></p>
+                    <p>Available</p>
+                  </div>
+                  <p className="text-gray-900 text-lg font-medium">{item.name}</p>
+                  <p className="text-gray-600 text-sm">{item.speciality}</p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

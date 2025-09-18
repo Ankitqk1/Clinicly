@@ -1,25 +1,40 @@
 import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AppContext } from "../Context/AppContext";
+import { useAuth } from "../Context/AuthContext";
 import { useState } from "react";
-import Doctors from "./Doctors";
 import { assets } from "../assets/assets";
 import RelativeDoctors from "../components/RelativeDoctors";
+import { appointmentApi, apiUtils } from "../services/api";
 
-const Appoitnment = () => {
+const Appointment = () => {
   const { docid } = useParams();
-  const { doctors, currencySymbol } = useContext(AppContext);
+  const { getDoctor, currencySymbol } = useContext(AppContext);
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const [docInfo, setDocInfo] = useState(null);
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchDocInfo = async () => {
-    const doctor = doctors.find((doc) => doc._id === docid);
-    setDocInfo(doctor);
-    console.log("Doctor Info:", doctor);
+    try {
+      setLoading(true);
+      setError(null);
+      const doctor = await getDoctor(docid);
+      setDocInfo(doctor);
+      console.log("Doctor Info:", doctor);
+    } catch (err) {
+      console.error("Error fetching doctor:", err);
+      setError("Failed to load doctor information");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getAvailableSlots = async () => {
@@ -63,15 +78,77 @@ const Appoitnment = () => {
 
   useEffect(() => {
     fetchDocInfo();
-  }, [doctors, docid]);
+  }, [docid]);
 
   useEffect(() => {
     getAvailableSlots();
   }, [docInfo]);
 
+  const bookAppointment = async () => {
+    if (!isAuthenticated) {
+      alert("Please login to book an appointment");
+      navigate("/login");
+      return;
+    }
+
+    if (!slotTime || !docSlots[slotIndex]) {
+      alert("Please select a time slot");
+      return;
+    }
+
+    try {
+      setBookingLoading(true);
+
+      // Find the selected slot datetime
+      const selectedSlot = docSlots[slotIndex].find(
+        (slot) => slot.time === slotTime
+      );
+
+      const appointmentData = {
+        userId: user.userId,
+        doctorId: docid,
+        appointmentDateTime: selectedSlot.datetime.toISOString(),
+        reason: "General consultation",
+      };
+
+      const response = await appointmentApi.bookAppointment(appointmentData);
+
+      alert("Appointment booked successfully!");
+      navigate("/my-appointments");
+    } catch (err) {
+      const errorMessage = apiUtils.handleError(err);
+      alert("Failed to book appointment: " + errorMessage);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     console.log("Available Slots:", docSlots);
   }, [docSlots]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button
+          onClick={() => navigate("/doctors")}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          Back to Doctors
+        </button>
+      </div>
+    );
+  }
 
   return (
     docInfo && (
@@ -215,8 +292,16 @@ const Appoitnment = () => {
             </div>
           </div>
           <div className="flex justify-start mt-1">
-            <button className="bg-red-400 text-sm text-white font-medium px-14 py-3 rounded-full mt-6 hover:scale-105 transition-all duration-300">
-              Book an Appointment
+            <button 
+              onClick={bookAppointment}
+              disabled={bookingLoading || !slotTime}
+              className={`text-sm font-medium px-14 py-3 rounded-full mt-6 transition-all duration-300 ${
+                bookingLoading || !slotTime 
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                  : 'bg-red-400 text-white hover:scale-105 hover:bg-red-500'
+              }`}
+            >
+              {bookingLoading ? 'Booking...' : 'Book an Appointment'}
             </button>
           </div>
         </div>
@@ -226,4 +311,4 @@ const Appoitnment = () => {
   );
 };
 
-export default Appoitnment;
+export default Appointment;

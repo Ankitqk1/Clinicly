@@ -1,24 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 import { assets } from "../assets/assets";
 
 const UserProfile = () => {
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: "Edward Vincent",
-    email: "richardjameswap@gmail.com",
-    phone: "+1 123 456 7890",
-    address: "57th Cross, Richmond Circle, Church Road, London",
-    gender: "Male",
-    birthday: "20 July, 2024",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    gender: "",
+    birthday: "",
   });
+
+  // Initialize profile data from user context
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
+    if (user) {
+      setProfileData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        gender: user.gender || "",
+        birthday: user.dateOfBirth || "",
+      });
+    }
+  }, [user, isAuthenticated, navigate]);
 
   const handleEdit = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Save logic here
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      // For now, just update local state
+      // TODO: Implement API call to update user profile
+      console.log('Saving profile data:', profileData);
+      setIsEditing(false);
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   const handleInputChange = (field, value) => {
@@ -215,35 +255,45 @@ const UserProfile = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-start">
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleSave}
-                className="px-8 py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors shadow-lg"
-              >
-                Save information
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="px-8 py-3 border-2 border-gray-300 text-gray-600 rounded-full font-medium hover:border-gray-400 hover:text-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
+        <div className="flex gap-4 justify-between">
+          <div className="flex gap-4">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className={`px-8 py-3 rounded-full font-medium transition-colors shadow-lg ${
+                    loading 
+                      ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
+                >
+                  {loading ? 'Saving...' : 'Save information'}
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  disabled={loading}
+                  className="px-8 py-3 border-2 border-gray-300 text-gray-600 rounded-full font-medium hover:border-gray-400 hover:text-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
               <button
                 onClick={handleEdit}
                 className="px-8 py-3 border-2 border-gray-300 text-gray-600 rounded-full font-medium hover:border-gray-400 hover:text-gray-700 transition-colors"
               >
-                Edit
+                Edit Profile
               </button>
-              <button className="px-8 py-3 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition-colors shadow-lg">
-                Save information
-              </button>
-            </>
-          )}
+            )}
+          </div>
+          
+          <button
+            onClick={handleLogout}
+            className="px-8 py-3 bg-red-600 text-white rounded-full font-medium hover:bg-red-700 transition-colors shadow-lg"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>

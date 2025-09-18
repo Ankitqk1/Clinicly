@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 import { assets } from "../assets/assets";
+import { useNavigate } from "react-router-dom";
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -28,6 +29,7 @@ const Contact = () => {
     // Navigate to doctors page
     window.location.href = "/doctors";
   };
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -112,7 +114,10 @@ const Contact = () => {
               <p className="text-purple-100 mb-6">
                 Learn more about our teams and job openings.
               </p>
-              <button className="bg-white text-purple-600 px-6 py-2 rounded-full font-medium hover:bg-purple-50 transition-colors duration-300 shadow-lg hover:shadow-xl">
+              <button
+                className="bg-white text-purple-600 px-6 py-2 rounded-full font-medium hover:bg-purple-50 transition-colors duration-300 shadow-lg hover:shadow-xl"
+                onClick={() => navigate("/doctor-register")}
+              >
                 Explore Jobs
               </button>
             </div>
@@ -292,7 +297,7 @@ const Contact = () => {
                 Schedule a meeting with our team
               </p>
               <button
-                onClick={handleScheduleNow}
+                onClick={() => navigate("/doctors")}
                 className="bg-white text-orange-600 px-8 py-3 rounded-full font-semibold hover:bg-orange-50 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Schedule Now
